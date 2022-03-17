@@ -1,7 +1,7 @@
 import QtQuick 2.14
-import QtQuickControls 2.14
+import QtQuick.Controls 2.14
 import QtQml.Models 2.1
-import Qtcoordinates 5.14
+import QtLocation 5.14
 import QtPositioning 5.14
 
 Row {
@@ -24,7 +24,7 @@ Row {
                 Text {
                     text: model.display
                 }
-                Mousearea {
+                MouseArea {
                     anchors.fill: parent
                     onClicked: settlementList.currentIndex = index
                 }
@@ -59,7 +59,7 @@ Row {
             text: "Počet obyvatel"
         }
         Text {
-                text: currentModelItem.POCET_OBYV
+                text: currentModelItem.population
         }
     }
 
@@ -79,13 +79,13 @@ Row {
         plugin: mapPlugin
         activeMapType: supportedMapTypes[supportedMapTypes.length - 1]
 
-        center: currentModelItem.coordinates
+        center: currentModelItem.location
         zoomLevel: 10
 
         MapItemView {
             model: settlementListModel
             delegate: MapQuickItem {
-                coordinate: model.coordinates
+                coordinate: model.location
                 sourceItem: Text {
                     text: model.display
                 }

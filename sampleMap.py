@@ -1,8 +1,8 @@
-from PySide6.QtCore import QObject, Signal, Slot, Property, QUrl, QAbstractListModel, QByteArray
-from PySide6.QtGui import QGuiApplication
-from PySide6.QtQuick import QQuickView
-from PySide6.QtPositioning import QGeoCoordinate
-from PySide6 import QtCore
+from PySide2.QtCore import QObject, Signal, Slot, Property, QUrl, QAbstractListModel, QByteArray
+from PySide2.QtGui import QGuiApplication
+from PySide2.QtQuick import QQuickView
+from PySide2.QtPositioning import QGeoCoordinate
+from PySide2 import QtCore
 from enum import Enum
 import json
 import sys
@@ -41,13 +41,13 @@ class SettlementListModel(QAbstractListModel):
 
     def data(self, index:QtCore.QModelIndex, role:int=...) -> typing.Any:
         if role == QtCore.Qt.DisplayRole:
-            return self.settlement_list["features"]["properties"][index.row()]["NAZ_OBEC"]
+            return self.settlement_list["features"][index.row()]["properties"]["NAZ_OBEC"]
         elif role == self.Roles.LOC.value: 
-            return self.settlement_list["features"]["geometry"][index.row()]["coordinates"]
+            return self.settlement_list["features"][index.row()]["geometry"]["coordinates"]
         elif role == self.Roles.POP.value:
-            return self.settlement_list["features"]["properties"][index.row()]["POCET_OBYV"]
+            return self.settlement_list["features"][index.row()]["properties"]["POCET_OBYV"]
         elif role == self.Roles.AREA.value:
-            return self.settlement_list["features"]["properties"][index.row()]["area"]
+            return self.settlement_list["features"][index.row()]["properties"]["area"]
         """
         elif role == self.Roles.DISTRICT.value:
             return self.settlement_list["features"]["properties"][index.row()]["NAZ_OKRES"]
@@ -59,11 +59,9 @@ class SettlementListModel(QAbstractListModel):
 
 
     def roleNames(self) -> typing.Dict[int, QByteArray]:
-        """Returns dict with role numbers and role names for default and custom roles together"""
-        # Append custom roles to the default roles and give them names for a usage in the QML
         roles = super().roleNames()
-        roles[self.Roles.LOC.value] = QByteArray(b'coordinates')
-        roles[self.Roles.POP.value] = QByteArray(b'POCET_OBYV')
+        roles[self.Roles.LOC.value] = QByteArray(b'location')
+        roles[self.Roles.POP.value] = QByteArray(b'population')
         roles[self.Roles.AREA.value] = QByteArray(b'area')
         print(roles)
         return roles
@@ -76,4 +74,4 @@ ctxt = view.rootContext()
 ctxt.setContextProperty = ('settlementListModel', settlementlist_model)
 view.setSource(url)
 view.show()
-app.exec()
+app.exec_()
