@@ -37,7 +37,8 @@ class SettlementListModel(QAbstractListModel):
                 entry["geometry"]["coordinates"] = QGeoCoordinate(float(lon), float(lat))
     
     def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
-        return len(self.settlement_list)
+        return len(self.settlement_list["features"])
+        
 
     def data(self, index:QtCore.QModelIndex, role:int=...) -> typing.Any:
         if role == QtCore.Qt.DisplayRole:
@@ -47,7 +48,7 @@ class SettlementListModel(QAbstractListModel):
         elif role == self.Roles.POP.value:
             return self.settlement_list["features"][index.row()]["properties"]["POCET_OBYV"]
         elif role == self.Roles.AREA.value:
-            return self.settlement_list["features"][index.row()]["properties"]["area"]
+            return round(self.settlement_list["features"][index.row()]["properties"]["area"],2)
         """
         elif role == self.Roles.DISTRICT.value:
             return self.settlement_list["features"]["properties"][index.row()]["NAZ_OKRES"]
@@ -75,3 +76,4 @@ ctxt.setContextProperty('settlementListModel', settlementlist_model)
 view.setSource(url)
 view.show()
 app.exec_()
+print (len(settlement_list))
