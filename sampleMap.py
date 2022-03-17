@@ -34,7 +34,7 @@ class SettlementListModel(QAbstractListModel):
             for entry in self.settlement_list["features"]:
                 lon = entry["geometry"]["coordinates"][0]
                 lat = entry["geometry"]["coordinates"][1]
-                entry["geometry"]["coordinates"] = QGeoCoordinate(float(lon), float(lat))
+                entry["geometry"]["coordinates"] = QGeoCoordinate(float(lat), float(lon))
     
     def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
         return len(self.settlement_list["features"])
