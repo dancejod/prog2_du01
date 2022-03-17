@@ -43,35 +43,7 @@ Row {
             color: "lightsteelblue"
         }
     }
-
-    Column {
-        Text {
-            text: currentModelItem.display
-            font.bold: true
-        }
-        Text {
-            text: currentModelItem.township
-        }
-        
-        Text {
-            textFormat: Text.RichText
-            text: "Rozloha: "+currentModelItem.area+" km<sup>2</sup>"
-        }
-        
-        Text {
-                text:"Počet obyvatel: "+currentModelItem.population
-        }
-
-        Text {
-                text:"Okres: " +currentModelItem.district
-        }
-
-        Text {
-                text:"Kraj: "+currentModelItem.region
-        }
-    }
-
-    Plugin {
+        Plugin {
         id: mapPlugin
         name: "osm"
         PluginParameter {
@@ -98,6 +70,33 @@ Row {
                     text: model.display
                 }
             }
+        }
+    }
+
+    Column {
+        Text {
+            text: currentModelItem.display
+            font.bold: true
+        }
+        Text {
+            text: currentModelItem.township
+        }
+        
+        Text {
+            textFormat: Text.RichText
+            text: "Rozloha: "+currentModelItem.area+" km<sup>2</sup>"
+        }
+        
+        Text {
+                text:"Počet obyvatel: "+currentModelItem.population
+        }
+
+        Text {
+                text:"Okres: " +currentModelItem.district
+        }
+
+        Text {
+                text:"Kraj: "+currentModelItem.region
         }
     }
 
