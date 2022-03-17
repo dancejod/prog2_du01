@@ -49,14 +49,16 @@ class SettlementListModel(QAbstractListModel):
             return self.settlement_list["features"][index.row()]["properties"]["POCET_OBYV"]
         elif role == self.Roles.AREA.value:
             return round(self.settlement_list["features"][index.row()]["properties"]["area"],2)
-        """
         elif role == self.Roles.DISTRICT.value:
-            return self.settlement_list["features"]["properties"][index.row()]["NAZ_OKRES"]
+            return self.settlement_list["features"][index.row()]["properties"]["NAZ_OKRES"]
         elif role == self.Roles.REGION.value:
-            return self.settlement_list["features"]["properties"][index.row()]["NAZ_KRAJ"]
+            return self.settlement_list["features"][index.row()]["properties"]["NAZ_KRAJ"]
         elif role == self.Roles.IS_CITY.value:
-            return self.settlement_list["features"]["properties"][index.row()]["is_city"]
-        """
+            if self.settlement_list["features"][index.row()]["properties"]["is_city"] == "TRUE":
+                return "Město"
+            else:
+                return "Vesnice" 
+            #return self.settlement_list["features"][index.row()]["properties"]["is_city"]
 
 
     def roleNames(self) -> typing.Dict[int, QByteArray]:
@@ -64,6 +66,9 @@ class SettlementListModel(QAbstractListModel):
         roles[self.Roles.LOC.value] = QByteArray(b'location')
         roles[self.Roles.POP.value] = QByteArray(b'population')
         roles[self.Roles.AREA.value] = QByteArray(b'area')
+        roles[self.Roles.DISTRICT.value] = QByteArray(b'district')
+        roles[self.Roles.REGION.value] = QByteArray(b'region')
+        roles[self.Roles.IS_CITY.value] = QByteArray(b'township')
         print(roles)
         return roles
 

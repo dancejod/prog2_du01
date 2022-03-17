@@ -46,7 +46,7 @@ Row {
 
     Column {
         Text {
-            text: settlementList.currentIndex
+            text: currentModelItem.township
         }
         Text {
             text: "Rozloha:"
@@ -60,6 +60,18 @@ Row {
         }
         Text {
                 text: currentModelItem.population
+        }
+        Text {
+            text: "Okres"
+        }
+        Text {
+                text: currentModelItem.district
+        }
+        Text {
+            text: "Kraj"
+        }
+        Text {
+                text: currentModelItem.region
         }
     }
 
