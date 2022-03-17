@@ -46,32 +46,28 @@ Row {
 
     Column {
         Text {
+            text: currentModelItem.display
+            font.bold: true
+        }
+        Text {
             text: currentModelItem.township
         }
-        Text {
-            text: "Rozloha:"
-        }
+        
         Text {
             textFormat: Text.RichText
-            text: currentModelItem.area+" km<sup>2</sup>"
+            text: "Rozloha: "+currentModelItem.area+" km<sup>2</sup>"
         }
+        
         Text {
-            text: "Počet obyvatel"
+                text:"Počet obyvatel: "+currentModelItem.population
         }
+
         Text {
-                text: currentModelItem.population
+                text:"Okres: " +currentModelItem.district
         }
+
         Text {
-            text: "Okres"
-        }
-        Text {
-                text: currentModelItem.district
-        }
-        Text {
-            text: "Kraj"
-        }
-        Text {
-                text: currentModelItem.region
+                text:"Kraj: "+currentModelItem.region
         }
     }
 
