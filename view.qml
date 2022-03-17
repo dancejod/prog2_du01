@@ -71,6 +71,21 @@ Row {
                 }
             }
         }
+        MapItemView {
+            model: settlementListModel
+            delegate: MapQuickItem {
+                coordinate: model.location
+                sourceItem: Rectangle {
+                    width: 10
+                    height: width
+                    color: "red"
+                    border.color: "black"
+                    border.width: 1
+                    radius: width*0.5
+                }
+                
+            }
+        }        
     }
 
     Column {
