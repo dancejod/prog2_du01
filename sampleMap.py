@@ -11,7 +11,69 @@ import typing
 VIEW_URL = "view.qml"
 SETTLEMENT_LIST = "sampleList.geojson"
 
+class SettlementListModel(QAbstractListModel):
+    
+    class Roles(Enum):
+        LOC = QtCore.Qt.UserRole+0
+        POP = QtCore.Qt.UserRole+1
+        AREA = QtCore.Qt.UserRole+2
+        DISTRICT = QtCore.Qt.UserRole+3
+        REGION = QtCore.Qt.UserRole+4
+        IS_CITY = QtCore.Qt.UserRole+5
+        
+    def __init__(self, filename=None):
+        QAbstractListModel.__init__(self)
+        self.settlement_list = []
+        if filename:
+            self.load_from_json(filename)
+
+    def load_from_json(self, filename):
+        with open (filename, encoding = "utf-8") as file:
+            self.settlement_list = json.load(file)
+
+            for entry in self.settlement_list["features"]:
+                lat = entry["geometry"]["coordinates"][0]
+                lon = entry["geometry"]["coordinates"][1]
+                entry["geometry"]["coordinates"] = QGeoCoordinate(float(lat), float(lon))
+    
+    def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
+        return len(self.settlement_list)
+
+    def data(self, index:QtCore.QModelIndex, role:int=...) -> typing.Any:
+        if role == QtCore.Qt.DisplayRole:
+            return self.settlement_list["features"]["properties"][index.row()]["NAZ_OBEC"]
+        elif role == self.Roles.LOC.value: 
+            return self.settlement_list["features"]["geometry"][index.row()]["coordinates"]
+        elif role == self.Roles.POP.value:
+            return self.settlement_list["features"]["properties"][index.row()]["POCET_OBYV"]
+        elif role == self.Roles.AREA.value:
+            return self.settlement_list["features"]["properties"][index.row()]["area"]
+        """
+        elif role == self.Roles.DISTRICT.value:
+            return self.settlement_list["features"]["properties"][index.row()]["NAZ_OKRES"]
+        elif role == self.Roles.REGION.value:
+            return self.settlement_list["features"]["properties"][index.row()]["NAZ_KRAJ"]
+        elif role == self.Roles.IS_CITY.value:
+            return self.settlement_list["features"]["properties"][index.row()]["is_city"]
+        """
+
+
+    def roleNames(self) -> typing.Dict[int, QByteArray]:
+        """Returns dict with role numbers and role names for default and custom roles together"""
+        # Append custom roles to the default roles and give them names for a usage in the QML
+        roles = super().roleNames()
+        roles[self.Roles.LOC.value] = QByteArray(b'coordinates')
+        roles[self.Roles.POP.value] = QByteArray(b'POCET_OBYV')
+        roles[self.Roles.AREA.value] = QByteArray(b'area')
+        print(roles)
+        return roles
 
 app = QGuiApplication(sys.argv)
 view = QQuickView()
 url = QUrl(VIEW_URL)
+settlementlist_model = SettlementListModel(SETTLEMENT_LIST)
+ctxt = view.rootContext()
+ctxt.setContextProperty = ('settlementListModel', settlementlist_model)
+view.setSource(url)
+view.show()
+app.exec()
