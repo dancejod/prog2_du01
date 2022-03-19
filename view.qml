@@ -5,21 +5,73 @@ import QtLocation 5.14
 import QtPositioning 5.14
 import QtQuick.Layouts 1.15
 
-ColumnLayout {
+RowLayout {
 	implicitWidth: 1280
 	implicitHeight: 760	
 	anchors.fill: parent
     property var currentModelItem;
     
+    ColumnLayout {
+		width: 200 		// width as parent
+		height: parent.height	// height as CheckBox
+
+        Column {
+            width: parent.width
+            height:500
+            spacing:20
+
+            Row {
+                spacing: 5
+
+			CheckBox {
+                id: citiesChecked
+				text: "Města"	// only `display` clashes with CheckBox property
+				checkable: true		// users can check
+                checked : true
+				onCheckStateChanged: settlementListModel._settlement_type_city =  citiesChecked.checked
+			}
+        
+            CheckBox {
+                id: villagesChecked
+				text: "Vesnice"	// only `display` clashes with CheckBox property
+				checkable: true		// users can check
+                checked : true
+				onCheckStateChanged: settlementListModel._settlement_type_village =  villagesChecked.checked
+            }
+        }
+    
+        RangeSlider {
+                    id: rangeSlider
+                    from: 0
+                    to: 1267449
+                    first.value: settlementListModel.min_slider
+                    second.value: settlementListModel.max_slider
+                    Component.onCompleted: {
+                            rangeSlider.setValues(0, 1267449)
+                    }
+                    Binding {
+                        target: settlementListModel
+                        property: "min_slider"
+                        value: sliderObyv.first.value
+                    }
+                    Binding {
+                        target: settlementListModel
+                        property: "max_slider"
+                        value: sliderObyv.second.value
+                    }
+
+                }
+        }
+    }    
+    
+
     RowLayout {
         Layout.fillWidth: true
-
-        
 
         ListView {
             id: settlementList
             width: 250
-            Layout.fillHeight: true
+            height: 500
             focus: true
 
             Component {
@@ -32,7 +84,7 @@ ColumnLayout {
                     }
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: settlementList.currentIndex = index
+                        onClicked: settlementList.currentIndex = index-500+parent.height
                     }
                 }
             }

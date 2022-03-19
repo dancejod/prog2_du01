@@ -1,3 +1,6 @@
+from pickle import FALSE, TRUE
+from threading import Lock
+from tkinter import ALL
 from PySide2.QtCore import QObject, Signal, Slot, Property, QUrl, QAbstractListModel, QByteArray
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtQuick import QQuickView
@@ -7,6 +10,7 @@ from enum import Enum
 import json
 import sys
 import typing
+import copy
 
 VIEW_URL = "view.qml"
 SETTLEMENT_LIST = "sampleList.geojson"
@@ -24,9 +28,20 @@ class SettlementListModel(QAbstractListModel):
     def __init__(self, filename=None):
         QAbstractListModel.__init__(self)
         self.settlement_list = []
+        self.filtered_list = []
+        self.district_list = []
+        self.region_list = []
+        self.district_region_dict = {}
+        self._min_slider = 0
+        self._max_slider = 1267449
+        self._settlement_type_city = True
+        self._settlement_type_village = True
+        self._show_district = "all"
+        self._show_region = "all"
+
         if filename:
             self.load_from_json(filename)
-
+    
     def load_from_json(self, filename):
         with open (filename, encoding = "utf-8") as file:
             self.settlement_list = json.load(file)
@@ -36,25 +51,27 @@ class SettlementListModel(QAbstractListModel):
                 lat = entry["geometry"]["coordinates"][1]
                 entry["geometry"]["coordinates"] = QGeoCoordinate(float(lat), float(lon))
     
+            self.filtered_list = self.settlement_list.copy()
+
     def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
         return len(self.settlement_list["features"])
         
 
     def data(self, index:QtCore.QModelIndex, role:int=...) -> typing.Any:
         if role == QtCore.Qt.DisplayRole:
-            return self.settlement_list["features"][index.row()]["properties"]["NAZ_OBEC"]
+            return self.filtered_list["features"][index.row()]["properties"]["NAZ_OBEC"]
         elif role == self.Roles.LOC.value: 
-            return self.settlement_list["features"][index.row()]["geometry"]["coordinates"]
+            return self.filtered_list["features"][index.row()]["geometry"]["coordinates"]
         elif role == self.Roles.POP.value:
-            return self.settlement_list["features"][index.row()]["properties"]["POCET_OBYV"]
+            return self.filtered_list["features"][index.row()]["properties"]["POCET_OBYV"]
         elif role == self.Roles.AREA.value:
-            return round(self.settlement_list["features"][index.row()]["properties"]["area"],2)
+            return round(self.filtered_list["features"][index.row()]["properties"]["area"],2)
         elif role == self.Roles.DISTRICT.value:
-            return self.settlement_list["features"][index.row()]["properties"]["NAZ_OKRES"]
+            return self.filtered_list["features"][index.row()]["properties"]["NAZ_OKRES"]
         elif role == self.Roles.REGION.value:
-            return self.settlement_list["features"][index.row()]["properties"]["NAZ_KRAJ"]
+            return self.filtered_list["features"][index.row()]["properties"]["NAZ_KRAJ"]
         elif role == self.Roles.IS_CITY.value:
-            if self.settlement_list["features"][index.row()]["properties"]["is_city"] == "TRUE":
+            if self.filtered_list["features"][index.row()]["properties"]["is_city"] == "TRUE":
                 return "Město"
             else:
                 return "Vesnice" 
@@ -71,6 +88,76 @@ class SettlementListModel(QAbstractListModel):
         roles[self.Roles.IS_CITY.value] = QByteArray(b'township')
         print(roles)
         return roles
+
+    def get_district_region_lists(self):
+        for record in range(len(self.settlement_list["features"])):
+
+            district_name = self.settlement_list["features"][record]["properties"]["NAZ_OKRES"]
+            region_name = self.settlement_list["features"][record]["properties"]["NAZ_KRAJ"]
+
+            if district_name not in self.district_list:
+                self.district_list.append(district_name)
+            if region_name not in self.region_list:
+                self.region_list.append(region_name)
+
+            if region_name not in self.district_region_dict.keys():
+                self.district_region_dict[region_name] = []
+            else:
+                if district_name not in self.district_region_dict[region_name]:
+                    self.district_region_dict[region_name].append(district_name)
+
+        self.region_list.append("all")
+        self.district_region_dict["all"] = self.district_list
+
+    def get_min_slider(self):
+        return self._min_slider
+
+    def set_min_slider(self, val):
+        if val != self.min_slider:
+            self._min_slider = val
+            self.min_slider_changed.emit()
+    
+    min_slider_changed = Signal()
+    min_slider = Property(int, get_min_slider, set_min_slider, notify=min_slider_changed)
+
+    def get_max_slider(self):
+        return self._max_slider
+
+    def set_max_slider(self, val):
+        if val != self.max_slider:
+            self._max_slider = val
+            self.max_slider_changed.emit()
+    
+    max_slider_changed = Signal()
+    max_slider = Property(int, get_max_slider, set_max_slider, notify=max_slider_changed)
+
+    def get_cities(self):
+        return self._settlement_type_city
+
+    def set_cities(self, bool):
+        if bool != self.show_cities:
+            self._settlement_type_city = bool
+            self.show_cities_changed.emit()
+    
+    show_cities_changed = Signal()
+    show_cities = Property(bool, get_max_slider, set_max_slider, notify=show_cities_changed)
+
+    def get_villages(self):
+        return self._settlement_type_village
+
+    def set_villages(self, bool):
+        if bool != self.show_villages:
+            self._settlement_type_village = bool
+            self.show_villages_changed.emit()
+    
+    show_villages_changed = Signal()
+    show_villages = Property(bool, get_max_slider, set_max_slider, notify=show_villages_changed)
+
+    @Slot(bool)
+    def city_checkbox_handler(self, bool):
+        pass
+
+
 
 app = QGuiApplication(sys.argv)
 view = QQuickView()
