@@ -52,12 +52,12 @@ RowLayout {
                     Binding {
                         target: settlementListModel
                         property: "min_slider"
-                        value: sliderObyv.first.value
+                        value: rangeSlider.first.value
                     }
                     Binding {
                         target: settlementListModel
                         property: "max_slider"
-                        value: sliderObyv.second.value
+                        value: rangeSlider.second.value
                     }
 
                 }
@@ -125,8 +125,18 @@ RowLayout {
                 delegate: MapQuickItem {
                     coordinate: model.location
                     sourceItem: Text {
-                        text: model.display
-                    }
+                            text: currentModelItem.display
+                            color: {
+                                color = "black"
+                                if (currentModelItem.township == "Město")
+                                    color = "red"
+                            }
+                            font.bold: {
+                                font.bold = false
+                                if (currentModelItem.township == "Město")
+                                    font.bold = true
+                            }                        
+                        }
                 }
             }
             MapItemView {
