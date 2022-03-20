@@ -28,7 +28,7 @@ RowLayout {
 				text: "Města"	// only `display` clashes with CheckBox property
 				checkable: true		// users can check
                 checked : true
-				onCheckStateChanged: settlementListModel._settlement_type_city =  citiesChecked.checked
+				onClicked: settlementListModel.filter_checkboxes()
 			}
         
             CheckBox {
@@ -36,9 +36,21 @@ RowLayout {
 				text: "Vesnice"	// only `display` clashes with CheckBox property
 				checkable: true		// users can check
                 checked : true
-				onCheckStateChanged: settlementListModel._settlement_type_village =  villagesChecked.checked
+				onClicked: settlementListModel.filter_checkboxes()
             }
         }
+            Binding {
+                target: settlementList
+                property: "show_cities"
+                value: citiesChecked.checked
+        }
+
+            Binding {
+                    target: settlementList
+                    property: "show_villages"
+                    value: villagesChecked.checked
+            }
+
     
         RangeSlider {
                     id: rangeSlider
@@ -118,7 +130,7 @@ RowLayout {
             activeMapType: supportedMapTypes[supportedMapTypes.length - 1]
 
             center: currentModelItem.location
-            zoomLevel: 10
+            zoomLevel: 12
 
             MapItemView {
                 model: settlementListModel

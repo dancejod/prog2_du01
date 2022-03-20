@@ -1,6 +1,3 @@
-from pickle import FALSE, TRUE
-from threading import Lock
-from tkinter import ALL
 from PySide2.QtCore import QObject, Signal, Slot, Property, QUrl, QAbstractListModel, QByteArray
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtQuick import QQuickView
@@ -10,7 +7,6 @@ from enum import Enum
 import json
 import sys
 import typing
-import copy
 
 VIEW_URL = "view.qml"
 SETTLEMENT_LIST = "sampleList.geojson"
@@ -60,7 +56,7 @@ class SettlementListModel(QAbstractListModel):
 
     # Metoda na manipulaciu s riadkami
     def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
-        return len(self.settlement_list["features"])
+        return len(self.filtered_list["features"])
         
     # Priradenie hodnot k rolam, zaokruhlenie plochy na 2 desatinne miesta
     def data(self, index:QtCore.QModelIndex, role:int=...) -> typing.Any:
@@ -162,10 +158,33 @@ class SettlementListModel(QAbstractListModel):
     show_villages_changed = Signal()
     show_villages = Property(bool, get_max_slider, set_max_slider, notify=show_villages_changed)
 
+    def clear_filter(self) -> None:
+        self.beginRemoveRows(self.index(0).parent(), 0, self.rowCount()-1)
+        self.filtered_list = []
+        self.endRemoveRows()
+
     # Handler pre checkboxy, treba vymysliet; plan je zaplnovat filtered_list tym, co tu bude zavolane
-    @Slot(bool)
-    def city_checkbox_handler(self, bool):
-        pass
+    @Slot()
+    def filter_checkboxes(self):
+        self.clear_filter()
+        i = 0
+        for settlement in self.settlement_list:
+            if self.show_cities:
+                value = self.settlement_list["features"][settlement]["properties"]["is_city"]
+                if value == "TRUE":
+                    self.beginInsertRows(self.index(0).parent(), i, i)
+                    self.filtered_list.append(settlement)
+                    self.endInsertRows()
+                    i += 1
+
+            if self.show_villages:
+                value = self.settlement_list["features"][settlement]["properties"]["is_city"]
+                if value == "FALSE":
+                    self.beginInsertRows(self.index(0).parent(), i, i)
+                    self.filtered_list.append(settlement)
+                    self.endInsertRows()
+                    i += 1 
+        
 
 # Inicializacia aplikacie
 app = QGuiApplication(sys.argv)
