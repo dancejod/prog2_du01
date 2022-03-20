@@ -17,6 +17,7 @@ SETTLEMENT_LIST = "sampleList.geojson"
 
 class SettlementListModel(QAbstractListModel):
     
+    # Deklaracia roli
     class Roles(Enum):
         LOC = QtCore.Qt.UserRole+0
         POP = QtCore.Qt.UserRole+1
@@ -24,7 +25,9 @@ class SettlementListModel(QAbstractListModel):
         DISTRICT = QtCore.Qt.UserRole+3
         REGION = QtCore.Qt.UserRole+4
         IS_CITY = QtCore.Qt.UserRole+5
-        
+
+    # Inicializacia potrebnych prvkov
+    # Plan je do filtered_list prihadzovat a odoberat veci, ktore splnaju nase poziadavky, ten potom bude zodpovedny za display    
     def __init__(self, filename=None):
         QAbstractListModel.__init__(self)
         self.settlement_list = []
@@ -42,6 +45,7 @@ class SettlementListModel(QAbstractListModel):
         if filename:
             self.load_from_json(filename)
     
+    # Nacitanie dat a korekcia geometrie
     def load_from_json(self, filename):
         with open (filename, encoding = "utf-8") as file:
             self.settlement_list = json.load(file)
@@ -50,13 +54,15 @@ class SettlementListModel(QAbstractListModel):
                 lon = entry["geometry"]["coordinates"][0]
                 lat = entry["geometry"]["coordinates"][1]
                 entry["geometry"]["coordinates"] = QGeoCoordinate(float(lat), float(lon))
-    
+
+            # Vytvorenie kopie nacitanych dat, s filtered list potom manipulovat odoberanim/prihadzovanim ziadanych dat
             self.filtered_list = self.settlement_list.copy()
 
+    # Metoda na manipulaciu s riadkami
     def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
         return len(self.settlement_list["features"])
         
-
+    # Priradenie hodnot k rolam, zaokruhlenie plochy na 2 desatinne miesta
     def data(self, index:QtCore.QModelIndex, role:int=...) -> typing.Any:
         if role == QtCore.Qt.DisplayRole:
             return self.filtered_list["features"][index.row()]["properties"]["NAZ_OBEC"]
@@ -74,10 +80,9 @@ class SettlementListModel(QAbstractListModel):
             if self.filtered_list["features"][index.row()]["properties"]["is_city"] == "TRUE":
                 return "Město"
             else:
-                return "Vesnice" 
-            #return self.settlement_list["features"][index.row()]["properties"]["is_city"]
+                return "Obec" 
 
-
+    # Pomenovanie roli tak, ako budu zobrazovane v qml
     def roleNames(self) -> typing.Dict[int, QByteArray]:
         roles = super().roleNames()
         roles[self.Roles.LOC.value] = QByteArray(b'location')
@@ -89,6 +94,8 @@ class SettlementListModel(QAbstractListModel):
         print(roles)
         return roles
 
+    # Ziskanie zoznamov krajov a okresov, naplnenie slovnika: klucom su kraje, hodnotami su zoznamy okresov, ktore ku krajom patria
+    # Na konci metody mimo cyklu pridany atribut "all" pre zobrazenie vsetkeho
     def get_district_region_lists(self):
         for record in range(len(self.settlement_list["features"])):
 
@@ -109,6 +116,8 @@ class SettlementListModel(QAbstractListModel):
         self.region_list.append("all")
         self.district_region_dict["all"] = self.district_list
 
+    # Gettery, settery a properties pre slidere, mesta, obce
+    # Mesta a obce pracuju s booleanom, pretoze mame len T/F
     def get_min_slider(self):
         return self._min_slider
 
@@ -153,12 +162,12 @@ class SettlementListModel(QAbstractListModel):
     show_villages_changed = Signal()
     show_villages = Property(bool, get_max_slider, set_max_slider, notify=show_villages_changed)
 
+    # Handler pre checkboxy, treba vymysliet; plan je zaplnovat filtered_list tym, co tu bude zavolane
     @Slot(bool)
     def city_checkbox_handler(self, bool):
         pass
 
-
-
+# Inicializacia aplikacie
 app = QGuiApplication(sys.argv)
 view = QQuickView()
 url = QUrl(VIEW_URL)
