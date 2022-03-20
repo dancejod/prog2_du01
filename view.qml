@@ -125,7 +125,7 @@ RowLayout {
                 delegate: MapQuickItem {
                     coordinate: model.location
                     sourceItem: Text {
-                            text: currentModelItem.display
+                            text: model.display
                             color: {
                                 color = "black"
                                 if (currentModelItem.township == "Město")
