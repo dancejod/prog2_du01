@@ -27,7 +27,7 @@ class SettlementListModel(QAbstractListModel):
     def __init__(self, filename=None):
         QAbstractListModel.__init__(self)
         self.settlement_list = []
-        self.filtered_list = []
+        self.filtered_list = {}
         self.district_list = []
         self.region_list = []
         self.district_region_dict = {}
@@ -45,15 +45,19 @@ class SettlementListModel(QAbstractListModel):
     def load_from_json(self, filename):
         with open (filename, encoding = "utf-8") as file:
             self.settlement_list = json.load(file)
-
+            self.filtered_list["features"] = []
+            i = 0
             for entry in self.settlement_list["features"]:
                 lon = entry["geometry"]["coordinates"][0]
                 lat = entry["geometry"]["coordinates"][1]
                 entry["geometry"]["coordinates"] = QGeoCoordinate(float(lat), float(lon))
 
             # Vytvorenie kopie nacitanych dat, s filtered list potom manipulovat odoberanim/prihadzovanim ziadanych dat
-            self.filtered_list = self.settlement_list.copy()
-
+               
+                self.beginInsertRows(self.index(0).parent(), i, i)
+                self.filtered_list["features"].append(entry)
+                self.endInsertRows()
+                i = +1
     # Metoda na manipulaciu s riadkami
     def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
         return len(self.filtered_list["features"])
@@ -164,27 +168,31 @@ class SettlementListModel(QAbstractListModel):
         self.endRemoveRows()
 
     # Handler pre checkboxy, treba vymysliet; plan je zaplnovat filtered_list tym, co tu bude zavolane
+        
     @Slot()
-    def filter_checkboxes(self):
+    def filter_checkbox(self):
         self.clear_filter()
         i = 0
+        
         for settlement in self.settlement_list:
             if self.show_cities:
                 value = self.settlement_list["features"][settlement]["properties"]["is_city"]
                 if value == "TRUE":
                     self.beginInsertRows(self.index(0).parent(), i, i)
-                    self.filtered_list.append(settlement)
+                    self.filtered_list["features"].append(settlement)
                     self.endInsertRows()
                     i += 1
-
+    
+    
             if self.show_villages:
                 value = self.settlement_list["features"][settlement]["properties"]["is_city"]
                 if value == "FALSE":
                     self.beginInsertRows(self.index(0).parent(), i, i)
-                    self.filtered_list.append(settlement)
+                    self.filtered_list["features"].append(settlement)
                     self.endInsertRows()
-                    i += 1 
+                    i += 1
         
+
 # Inicializacia aplikacie
 app = QGuiApplication(sys.argv)
 view = QQuickView()

@@ -22,29 +22,29 @@ RowLayout {
                     
                     CheckBox {
                         id: citiesChecked
-                        text: "Města"	// only `display` clashes with CheckBox property
+                        text: qsTr("Města")	// only `display` clashes with CheckBox property
                         checkable: true		// users can check
                         checked : true
-                        onClicked: settlementListModel.filter_checkboxes()
+                        onCheckStateChanged: settlementListModel.filter_checkbox()
                     }
                 
                     CheckBox {
                         id: villagesChecked
-                        text: "Vesnice"	// only `display` clashes with CheckBox property
+                        text: qsTr("Vesnice")	// only `display` clashes with CheckBox property
                         checkable: true		// users can check
                         checked : true
-                        onClicked: settlementListModel.filter_checkboxes()
+                        onCheckStateChanged: settlementListModel.filter_checkbox()
                     }
                 }    
         
             Binding {
-                target: settlementList
+                target: settlementListModel
                 property: "show_cities"
                 value: citiesChecked.checked
         }
 
             Binding {
-                target: settlementList
+                target: settlementListModel
                 property: "show_villages"
                 value: villagesChecked.checked
             }
@@ -216,15 +216,15 @@ RowLayout {
                     sourceItem: Text {
                         text: model.display
                         color: {
-                            if (currentModelItem.township == "TRUE")
+                            if (model.township == "Město")
                                 color = "red"
-                            if (currentModelItem.township == "FALSE")
+                            if (model.township == "Obec")
                                 color = "black"
                             
                         }
                         font.bold: {
                             font.bold = false
-                            if (currentModelItem.township == "TRUE")
+                            if (model.township == "Město")
                                 font.bold = true
                             }                        
                         }
