@@ -6,39 +6,37 @@ import QtPositioning 5.14
 import QtQuick.Layouts 1.15
 
 RowLayout {
-	implicitWidth: 1280
-	implicitHeight: 760	
+	
 	anchors.fill: parent
     property var currentModelItem;
     
-    ColumnLayout {
-		width: 200 		// width as parent
-		height: parent.height	// height as CheckBox
 
         Column {
-            width: parent.width
-            height:500
-            spacing:20
-
-            Row {
-                spacing: 5
-
-			CheckBox {
-                id: citiesChecked
-				text: "Města"	// only `display` clashes with CheckBox property
-				checkable: true		// users can check
-                checked : true
-				onClicked: settlementListModel.filter_checkboxes()
-			}
+            anchors.fill: parent
+            Layout.minimumWidth: 210
+            Rectangle{
+                id:first_rectangle
+                Row {
+                    spacing: 20
+                
+                    
+                    CheckBox {
+                        id: citiesChecked
+                        text: "Města"	// only `display` clashes with CheckBox property
+                        checkable: true		// users can check
+                        checked : true
+                        onClicked: settlementListModel.filter_checkboxes()
+                    }
+                
+                    CheckBox {
+                        id: villagesChecked
+                        text: "Vesnice"	// only `display` clashes with CheckBox property
+                        checkable: true		// users can check
+                        checked : true
+                        onClicked: settlementListModel.filter_checkboxes()
+                    }
+                }    
         
-            CheckBox {
-                id: villagesChecked
-				text: "Vesnice"	// only `display` clashes with CheckBox property
-				checkable: true		// users can check
-                checked : true
-				onClicked: settlementListModel.filter_checkboxes()
-            }
-        }
             Binding {
                 target: settlementList
                 property: "show_cities"
@@ -46,13 +44,16 @@ RowLayout {
         }
 
             Binding {
-                    target: settlementList
-                    property: "show_villages"
-                    value: villagesChecked.checked
+                target: settlementList
+                property: "show_villages"
+                value: villagesChecked.checked
             }
-
-    
-        RangeSlider {
+}
+            Rectangle{
+                id: second_rectangle
+                anchors.top: first_rectangle.bottom
+                anchors.topMargin: 50
+                RangeSlider {
                     id: rangeSlider
                     from: 0
                     to: 1267449
@@ -71,48 +72,120 @@ RowLayout {
                         property: "max_slider"
                         value: rangeSlider.second.value
                     }
+                }
+                }
+        Rectangle{
+            id: third_rectangle
+            anchors.top: second_rectangle.bottom
+            anchors.topMargin: 50
+             
 
+            Column{
+                spacing: 5
+                Text{
+                    id: combo_kraj_label
+                    text: "Kraj:"
+                }
+
+                ComboBox {
+                    id: combo_kraj
+                    currentIndex: -1
+                    model: ["First", "Second", "Third"]
+                }
+
+                Text{
+                    id: combo_okres_label
+                    text: "Okres:"
+                }
+
+                ComboBox {
+                    currentIndex: -1
+                    id: combo_okres
+                    model: ["First", "Second", "Third"]
+                }
+            }
+        }
+        Rectangle{
+            id:forth_rectangle
+            anchors.top:third_rectangle.bottom
+            anchors.topMargin: 170
+            width: 250
+            height: 500
+            
+            ListView {
+                id: settlementList
+                width: 250
+                height: 500
+                focus: true
+
+                Component {
+                    id: settlementListDelegate
+                    Item {
+                        width: parent.width
+                        height: childrenRect.height
+                        Text {
+                            text: model.display
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: settlementList.currentIndex = index-500+parent.height
+                        }
+                    }
+                }
+
+                model: DelegateModel {
+                    id: settlementListDelegateModel
+                    model: settlementListModel
+                    delegate: settlementListDelegate
+                }
+
+                onCurrentItemChanged: currentModelItem = settlementListDelegateModel.items.get(settlementList.currentIndex).model
+
+                highlight: Rectangle {
+                    color: "lightsteelblue"
                 }
         }
-    }    
+        }
+        Rectangle{
+            id:fifth_rectangle
+            anchors.top:forth_rectangle.bottom
+            anchors.topMargin:50
+           
+            
+            Column {
+                Text {
+                    text: currentModelItem.display
+                    font.bold: true
+                                }
+                Text {
+                    text: currentModelItem.township
+                }
+                
+                Text {
+                    textFormat: Text.RichText
+                    text: "Rozloha: "+currentModelItem.area+" km<sup>2</sup>"
+                }
+                
+                Text {
+                        text:"Počet obyvatel: "+currentModelItem.population
+                }
+
+                Text {
+                        text:"Okres: " +currentModelItem.district
+                }
+
+                Text {
+                        text:"Kraj: "+currentModelItem.region
+                }
+        }}
+        }
+       
     
 
     RowLayout {
         Layout.fillWidth: true
 
-        ListView {
-            id: settlementList
-            width: 250
-            height: 500
-            focus: true
-
-            Component {
-                id: settlementListDelegate
-                Item {
-                    width: parent.width
-                    height: childrenRect.height
-                    Text {
-                        text: model.display
-                    }
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: settlementList.currentIndex = index-500+parent.height
-                    }
-                }
-            }
-
-            model: DelegateModel {
-                id: settlementListDelegateModel
-                model: settlementListModel
-                delegate: settlementListDelegate
-            }
-
-            onCurrentItemChanged: currentModelItem = settlementListDelegateModel.items.get(settlementList.currentIndex).model
-
-            highlight: Rectangle {
-                color: "lightsteelblue"
-            }
-        }
+        
             Plugin {
             id: mapPlugin
             name: "osm"
@@ -141,16 +214,17 @@ RowLayout {
                         anchorPoint.y: -5
                     sourceItem: Text {
                         text: model.display
-                        
-                            color: {
+                        color: {
+                            if (currentModelItem.township == "TRUE")
+                                color = "red"
+                            if (currentModelItem.township == "FALSE")
                                 color = "black"
-                                if (currentModelItem.township == "Město")
-                                    color = "red"
-                            }
-                            font.bold: {
-                                font.bold = false
-                                if (currentModelItem.township == "Město")
-                                    font.bold = true
+                            
+                        }
+                        font.bold: {
+                            font.bold = false
+                            if (currentModelItem.township == "TRUE")
+                                font.bold = true
                             }                        
                         }
                 }
@@ -172,32 +246,7 @@ RowLayout {
             }        
         }
 
-        Column {
-            Text {
-                text: currentModelItem.display
-                font.bold: true
-            }
-            Text {
-                text: currentModelItem.township
-            }
-            
-            Text {
-                textFormat: Text.RichText
-                text: "Rozloha: "+currentModelItem.area+" km<sup>2</sup>"
-            }
-            
-            Text {
-                    text:"Počet obyvatel: "+currentModelItem.population
-            }
-
-            Text {
-                    text:"Okres: " +currentModelItem.district
-            }
-
-            Text {
-                    text:"Kraj: "+currentModelItem.region
-            }
-        }
+        
 
     }
 }
