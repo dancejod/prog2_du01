@@ -177,7 +177,8 @@ RowLayout {
                 Text {
                         text:"Kraj: "+currentModelItem.region
                 }
-        }}
+        }
+        }
         }
        
     
@@ -245,8 +246,6 @@ RowLayout {
                 }
             }        
         }
-
-        
 
     }
 }
