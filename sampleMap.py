@@ -185,7 +185,6 @@ class SettlementListModel(QAbstractListModel):
                     self.endInsertRows()
                     i += 1 
         
-
 # Inicializacia aplikacie
 app = QGuiApplication(sys.argv)
 view = QQuickView()
