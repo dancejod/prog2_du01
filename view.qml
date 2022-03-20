@@ -134,10 +134,14 @@ RowLayout {
 
             MapItemView {
                 model: settlementListModel
+                
                 delegate: MapQuickItem {
                     coordinate: model.location
+                        anchorPoint.x: -10
+                        anchorPoint.y: -5
                     sourceItem: Text {
-                            text: model.display
+                        text: model.display
+                        
                             color: {
                                 color = "black"
                                 if (currentModelItem.township == "Město")
