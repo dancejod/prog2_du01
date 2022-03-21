@@ -5,22 +5,23 @@ import QtLocation 5.14
 import QtPositioning 5.14
 import QtQuick.Layouts 1.15
 
+// Create a column on the left of the map
 RowLayout {
 	
 	anchors.fill: parent
     property var currentModelItem;
     
-
         Column {
             id:main_column
             anchors.fill: parent
             Layout.minimumWidth: 210
-            Rectangle{
+            Rectangle {
                 id:first_rectangle
                 Row {
                     spacing: 20
                 
-                    
+                    // Create checkboxes for cities and villages
+                    // Button press required in order to work
                     CheckBox {
                         id: citiesChecked
                         text: qsTr("Města")
@@ -36,10 +37,10 @@ RowLayout {
                         checked : true
                         onCheckStateChanged: settlementListModel.show_villages = villagesChecked.checked
                     }
-                    
                 }    
-
             }
+            // Create population range slider
+            // Users can also input their own values
             Rectangle {
                 id: second_rectangle
                 anchors.top: first_rectangle.bottom
@@ -88,7 +89,6 @@ RowLayout {
                 }
             }
             
-       
             Label {
                 text: "Do: "
             }
@@ -101,9 +101,10 @@ RowLayout {
                     value: maxSliderInput.text
                 }
             }    
-    
         }
     }
+        // Filter button
+        // on press: Shows desired settlements on current setting
         Rectangle {
             id: third_rectangle
             anchors.top: second_rectangle.bottom
@@ -122,8 +123,10 @@ RowLayout {
 
                 }
             }
-
         }
+
+        // Combo box of regions and districts
+        // Map adjustion is live
         Rectangle {
             id: fourth_rectangle
             anchors.top: third_rectangle.bottom
@@ -161,6 +164,8 @@ RowLayout {
                 }
             }
         }
+
+        // List of settlements that satisfy current settings
         Rectangle {
             id: fifth_rectangle
             anchors.top: fourth_rectangle.bottom
@@ -202,6 +207,8 @@ RowLayout {
                 }
             }
         }
+
+        // Infobox of selected settlement
         Rectangle {
             id: sixth_rectangle
             anchors.top: fifth_rectangle.bottom
@@ -234,7 +241,6 @@ RowLayout {
                 }
             }
         }
-        
     }
        
     RowLayout {
@@ -250,6 +256,8 @@ RowLayout {
             }
         }
 
+        // Map initialisation
+        // Show cities in bold and red text
         Map {
             id: mapSettlements
             Layout.fillWidth: true
@@ -283,8 +291,9 @@ RowLayout {
                                 font.bold = true
                             }                        
                         }
+                    }
                 }
-            }
+            // Settlement marks
             MapItemView {
                 model: settlementListModel
                 delegate: MapQuickItem {
@@ -301,6 +310,5 @@ RowLayout {
                 }
             }        
         }
-
     }
 }

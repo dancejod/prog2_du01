@@ -12,8 +12,11 @@ VIEW_URL = "view.qml"
 SETTLEMENT_LIST = "sampleList.geojson"
 
 class SettlementListModel(QAbstractListModel):
-    
-    # Deklaracia roli
+    '''
+    A class used to represent an abstract list used for visualisation of
+    settlements in the Czech Republic
+    '''
+    # Declare roles
     class Roles(Enum):
         LOC = QtCore.Qt.UserRole+0
         POP = QtCore.Qt.UserRole+1
@@ -21,10 +24,10 @@ class SettlementListModel(QAbstractListModel):
         DISTRICT = QtCore.Qt.UserRole+3
         REGION = QtCore.Qt.UserRole+4
         IS_CITY = QtCore.Qt.UserRole+5
-
-    # Inicializacia potrebnych prvkov
-    # Plan je do filtered_list prihadzovat a odoberat veci, ktore splnaju nase poziadavky, ten potom bude zodpovedny za display    
+    
     def __init__(self, filename=None):
+    # Initialize required variables
+
         QAbstractListModel.__init__(self)
         self.settlement_list = {}
         self.filtered_list = {}
@@ -42,11 +45,15 @@ class SettlementListModel(QAbstractListModel):
         self.current_district = 'všechny'
 
         if filename:
+        # Load input file, create necessary lists using a method
+
             self.load_from_json(filename)
             self.get_district_region_lists()
     
-    # Nacitanie dat a korekcia geometrie
     def load_from_json(self, filename):
+    # Load data, correct geometry in order to bind properly with QML
+    # The original geometry data is rewritten
+
         with open (filename, encoding = "utf-8") as file:
             self.settlement_list = json.load(file)
             self.filtered_list["features"] = []
@@ -55,23 +62,24 @@ class SettlementListModel(QAbstractListModel):
                 lon = entry["geometry"]["coordinates"][0]
                 lat = entry["geometry"]["coordinates"][1]
                 entry["geometry"]["coordinates"] = QGeoCoordinate(float(lat), float(lon))
-
-            # Vytvorenie kopie nacitanych dat, s filtered list potom manipulovat odoberanim/prihadzovanim ziadanych dat
                
                 self.beginInsertRows(self.index(0).parent(), i, i)
                 self.filtered_list["features"].append(entry)
                 self.endInsertRows()
                 i = +1
 
+            # Sort lists by name of the settlements
             self.settlement_list["features"] = sorted(self.settlement_list["features"], key=lambda d: d["properties"]["NAZ_OBEC"])
             self.filtered_list["features"] = sorted(self.filtered_list["features"], key=lambda d: d["properties"]["NAZ_OBEC"])
 
-    # Metoda na manipulaciu s riadkami
     def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
+    # Get the number of rows, necessary for locating data
+
         return len(self.filtered_list["features"])
         
-    # Priradenie hodnot k rolam, zaokruhlenie plochy na 2 desatinne miesta
     def data(self, index:QtCore.QModelIndex, role:int=...) -> typing.Any:
+    # Assign values to roles, round area to 2 decimal places
+
         if role == QtCore.Qt.DisplayRole:
             return self.filtered_list["features"][index.row()]["properties"]["NAZ_OBEC"]
         elif role == self.Roles.LOC.value: 
@@ -90,8 +98,10 @@ class SettlementListModel(QAbstractListModel):
             else:
                 return "Obec" 
 
-    # Pomenovanie roli tak, ako budu zobrazovane v qml
+    
     def roleNames(self) -> typing.Dict[int, QByteArray]:
+    # Assign alias which appear in QML to roles
+
         roles = super().roleNames()
         roles[self.Roles.LOC.value] = QByteArray(b"location")
         roles[self.Roles.POP.value] = QByteArray(b"population")
@@ -102,9 +112,9 @@ class SettlementListModel(QAbstractListModel):
         print(roles)
         return roles
 
-    # Ziskanie zoznamov krajov a okresov, naplnenie slovnika: klucom su kraje, hodnotami su zoznamy okresov, ktore ku krajom patria
-    # Na konci metody mimo cyklu pridany atribut "všechny" pre zobrazenie vsetkeho
     def get_district_region_lists(self):
+    # Get a dictionary and lists of districts and regions
+    # Dictionary has regions as keys and lists of districts that belong to them as their values
         
         self.region_list.append("všechny")
         self.district_list.append("všechny")
@@ -128,8 +138,7 @@ class SettlementListModel(QAbstractListModel):
         self.district_region_dict["všechny"] = self.district_list
         self.current_districts = self.district_list
 
-    # Gettery, settery a properties pre slidere, mesta, obce
-    # Mesta a obce pracuju s valeanom, pretoze mame len T/F
+    # Necessary getters, setters and properties
     def get_min_slider(self):
         return self._min_slider
 
@@ -224,7 +233,7 @@ class SettlementListModel(QAbstractListModel):
         self.filtered_list["features"] = []
         self.endRemoveRows()
 
-    # Handler pre checkboxy, treba vymysliet; plan je zaplnovat filtered_list tym, co tu bude zavolane
+    # Hopefully self-explanatory data filter, corresponds with QML
     @Slot()
     def filter(self):
         self.clear_filter()
@@ -250,8 +259,8 @@ class SettlementListModel(QAbstractListModel):
                                 self.filtered_list["features"].append(settlement)
                                 self.endInsertRows()
                                 i += 1
-        
-# Inicializacia aplikacie
+
+# Initialize the application
 app = QGuiApplication(sys.argv)
 view = QQuickView()
 url = QUrl(VIEW_URL)
