@@ -107,6 +107,7 @@ class SettlementListModel(QAbstractListModel):
     def get_district_region_lists(self):
         
         self.region_list.append("všechny")
+        self.district_list.append("všechny")
 
         for record in range(len(self.settlement_list["features"])):
 
@@ -190,6 +191,7 @@ class SettlementListModel(QAbstractListModel):
     def set_region(self, val):
         if val != self.selected_region:
             self.current_region = val
+            self.valid_districts = self.district_region_dict[val]
         self.current_region_changed.emit()
     
     current_region_changed = Signal()
@@ -217,19 +219,6 @@ class SettlementListModel(QAbstractListModel):
     selected_district_changed = Signal()
     sel_district = Property(str, get_selected_district, set_selected_district, notify=selected_district_changed)
 
-    @Slot(str)
-    def set_regionslot(self, val: str):
-        self.kraj_filtr = []
-        self.kraj_filtr.append(val)
-        print(self.kraj_filtr)
-
-    #Sets the value of property okres_filtr
-    @Slot(str)
-    def set_districtslot(self, val: str):
-        self.okres_filtr = []
-        self.okres_filtr.append(val)
-        print(self.okres_filtr)
-
     def clear_filter(self) -> None:
         self.beginRemoveRows(self.index(0).parent(), 0, self.rowCount()-1)
         self.filtered_list["features"] = []
@@ -242,23 +231,52 @@ class SettlementListModel(QAbstractListModel):
         i = 0
         
         for settlement in self.settlement_list["features"]:
-            if self.show_cities:
-                value = settlement["properties"]["is_city"]
-                if value == "TRUE":
-                    if self.max_slider >= settlement["properties"]["POCET_OBYV"] >= self.min_slider:
-                        self.beginInsertRows(self.index(0).parent(), i, i)
-                        self.filtered_list["features"].append(settlement)
-                        self.endInsertRows()
-                        i += 1
-    
-            if self.show_villages:
-                value = settlement["properties"]["is_city"]
-                if value == "FALSE":
-                    if self.max_slider >= settlement["properties"]["POCET_OBYV"] >= self.min_slider:
-                        self.beginInsertRows(self.index(0).parent(), i, i)
-                        self.filtered_list["features"].append(settlement)
-                        self.endInsertRows()
-                        i += 1
+            if self.selected_region == settlement["properties"]["NAZ_KRAJ"] or self.selected_region == "všechny":
+                if self.sel_district == settlement["properties"]["NAZ_OKRES"] or self.sel_district == "všechny":
+                    if self.show_cities:
+                        value = settlement["properties"]["is_city"]
+                        if value == "TRUE":
+                            if self.max_slider >= settlement["properties"]["POCET_OBYV"] >= self.min_slider:
+                                self.beginInsertRows(self.index(0).parent(), i, i)
+                                self.filtered_list["features"].append(settlement)
+                                self.endInsertRows()
+                                i += 1
+            
+                    if self.show_villages:
+                        value = settlement["properties"]["is_city"]
+                        if value == "FALSE":
+                            if self.max_slider >= settlement["properties"]["POCET_OBYV"] >= self.min_slider:
+                                self.beginInsertRows(self.index(0).parent(), i, i)
+                                self.filtered_list["features"].append(settlement)
+                                self.endInsertRows()
+                                i += 1
+
+    @Slot()
+    def live_filter_r_d(self):
+        self.clear_filter()
+        i = 0
+        
+        for settlement in self.settlement_list["features"]:
+            if self.selected_region == settlement["properties"]["NAZ_KRAJ"] or self.selected_region == "všechny":
+                if self.sel_district == settlement["properties"]["NAZ_OKRES"] or self.sel_district == "všechny":
+                    if self.show_cities:
+                        value = settlement["properties"]["is_city"]
+                        if value == "TRUE":
+                            if self.max_slider >= settlement["properties"]["POCET_OBYV"] >= self.min_slider:
+                                self.beginInsertRows(self.index(0).parent(), i, i)
+                                self.filtered_list["features"].append(settlement)
+                                self.endInsertRows()
+                                i += 1
+            
+                    if self.show_villages:
+                        value = settlement["properties"]["is_city"]
+                        if value == "FALSE":
+                            if self.max_slider >= settlement["properties"]["POCET_OBYV"] >= self.min_slider:
+                                self.beginInsertRows(self.index(0).parent(), i, i)
+                                self.filtered_list["features"].append(settlement)
+                                self.endInsertRows()
+                                i += 1
+        
     
 # Inicializacia aplikacie
 app = QGuiApplication(sys.argv)
