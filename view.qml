@@ -26,8 +26,7 @@ RowLayout {
                         text: qsTr("Města")	// only `display` clashes with CheckBox property
                         checkable: true		// users can check
                         checked : true
-                        onCheckStateChanged: {
-                            if settlementListModel.live_filter_checkboxes()
+                        onCheckStateChanged: settlementListModel.show_cities = citiesChecked.checked
                     }
                 
                     CheckBox {
@@ -35,22 +34,13 @@ RowLayout {
                         text: qsTr("Vesnice")	// only `display` clashes with CheckBox property
                         checkable: true		// users can check
                         checked : true
-                        onCheckStateChanged: settlementListModel.live_filter_checkboxes()
+                        onCheckStateChanged: settlementListModel.show_villages = villagesChecked.checked
                     }
-                    Binding {
-                        target: settlementListModel
-                        property: "show_cities"
-                        value: citiesChecked.checked
-        }
-                    Binding {
-                        target: settlementListModel
-                        property: "show_villages"
-                        value: villagesChecked.checked
-                    }       
-        }    
+                    
+                }    
 
-}
-            Rectangle{
+            }
+            Rectangle {
                 id: second_rectangle
                 anchors.top: first_rectangle.bottom
                 anchors.topMargin: 50
@@ -112,10 +102,31 @@ RowLayout {
                 }
             }    
     
-}}
-        Rectangle{
+        }
+    }
+        Rectangle {
             id: third_rectangle
             anchors.top: second_rectangle.bottom
+            anchors.topMargin: 100
+
+            Button {
+                Layout.alignment: Qt.AlignHCenter
+                anchors.topMargin: 150
+                id: filterButton
+                text: "Filter"
+
+                onClicked: {
+                    settlementListModel.filter_checkbox()
+                    settlementListModel.currentIndex = -1
+                    mapSettlements.fitViewportToVisibleMapItems()
+
+                }
+            }
+
+        }
+        Rectangle{
+            id: fourth_rectangle
+            anchors.top: third_rectangle.bottom
             anchors.topMargin: 100
             
 
@@ -145,9 +156,9 @@ RowLayout {
                 }
             }
         }
-        Rectangle{
-            id:forth_rectangle
-            anchors.top:third_rectangle.bottom
+        Rectangle {
+            id: fifth_rectangle
+            anchors.top: fourth_rectangle.bottom
             anchors.topMargin: 170
             width: 250
             height: 500
@@ -184,14 +195,13 @@ RowLayout {
                 highlight: Rectangle {
                     color: "lightsteelblue"
                 }
+            }
         }
-        }
-        Rectangle{
-            id:fifth_rectangle
-            anchors.top:forth_rectangle.bottom
+        Rectangle {
+            id: sixth_rectangle
+            anchors.top: fifth_rectangle.bottom
             anchors.topMargin:50
            
-            
             Column {
                 Text {
                     text: currentModelItem.display
@@ -217,9 +227,10 @@ RowLayout {
                 Text {
                         text:"Kraj: "+currentModelItem.region
                 }
+            }
         }
-        }
-        }
+        
+    }
        
     
 
@@ -237,6 +248,7 @@ RowLayout {
         }
 
         Map {
+            id: mapSettlements
             Layout.fillWidth: true
             Layout.fillHeight: true
 

@@ -17,5 +17,14 @@ def get_district_list():
         if settlement_list["features"][okres]["properties"]["NAZ_OKRES"] not in district_list:
             district_list.append(settlement_list["features"][okres]["properties"]["NAZ_OKRES"])
     print(district_list)
-    print(len(district_list))
-get_district_list()
+    print(district_list)
+
+
+def live_filter_checkboxes(self):
+    if self._settlement_type_city == True and self._settlement_type_village == True:
+        settlement_city = self.settlement_list["features"][13]["properties"]["is_city"]
+        settlement_village = self.settlement_list["features"][0]["properties"]["is_city"]
+        if settlement_city not in self.filtered_list or settlement_village not in self.filtered_list:
+            for entry in self.settlement_list:
+                self.filtered_list["features"].append(self.settlement_list["features"][entry])
+                

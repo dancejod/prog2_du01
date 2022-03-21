@@ -33,8 +33,8 @@ class SettlementListModel(QAbstractListModel):
         self.district_region_dict = {}
         self._min_slider = 0
         self._max_slider = 1267449
-        self._settlement_type_city = True
-        self._settlement_type_village = True
+        self.settlement_type_city = True
+        self.settlement_type_village = True
         self._show_district = "all"
         self._show_region = "all"
 
@@ -118,7 +118,7 @@ class SettlementListModel(QAbstractListModel):
         self.district_region_dict["all"] = self.district_list
 
     # Gettery, settery a properties pre slidere, mesta, obce
-    # Mesta a obce pracuju s booleanom, pretoze mame len T/F
+    # Mesta a obce pracuju s valeanom, pretoze mame len T/F
     def get_min_slider(self):
         return self._min_slider
 
@@ -142,30 +142,30 @@ class SettlementListModel(QAbstractListModel):
     max_slider = Property(int, get_max_slider, set_max_slider, notify=max_slider_changed)
 
     def get_cities(self):
-        return self._settlement_type_city
+        return self.settlement_type_city
 
-    def set_cities(self, bool):
-        if bool != self.show_cities:
-            self._settlement_type_city = bool
+    def set_cities(self, val):
+        if val != self.show_cities:
+            self.settlement_type_city = val
             self.show_cities_changed.emit()
     
     show_cities_changed = Signal()
-    show_cities = Property(bool, get_max_slider, set_max_slider, notify=show_cities_changed)
+    show_cities = Property(bool, get_cities, set_cities, notify=show_cities_changed)
 
     def get_villages(self):
-        return self._settlement_type_village
+        return self.settlement_type_village
 
-    def set_villages(self, bool):
-        if bool != self.show_villages:
-            self._settlement_type_village = bool
+    def set_villages(self, val):
+        if val != self.show_villages:
+            self.settlement_type_village = val
             self.show_villages_changed.emit()
     
     show_villages_changed = Signal()
-    show_villages = Property(bool, get_max_slider, set_max_slider, notify=show_villages_changed)
+    show_villages = Property(bool, get_villages, set_villages, notify=show_villages_changed)
 
     def clear_filter(self) -> None:
         self.beginRemoveRows(self.index(0).parent(), 0, self.rowCount()-1)
-        self.filtered_list = []
+        self.filtered_list["features"] = []
         self.endRemoveRows()
 
     # Handler pre checkboxy, treba vymysliet; plan je zaplnovat filtered_list tym, co tu bude zavolane
@@ -175,9 +175,9 @@ class SettlementListModel(QAbstractListModel):
         self.clear_filter()
         i = 0
         
-        for settlement in self.settlement_list:
+        for settlement in self.settlement_list["features"]:
             if self.show_cities:
-                value = self.settlement_list["features"][settlement]["properties"]["is_city"]
+                value = settlement["properties"]["is_city"]
                 if value == "TRUE":
                     self.beginInsertRows(self.index(0).parent(), i, i)
                     self.filtered_list["features"].append(settlement)
@@ -186,7 +186,7 @@ class SettlementListModel(QAbstractListModel):
     
     
             if self.show_villages:
-                value = self.settlement_list["features"][settlement]["properties"]["is_city"]
+                value = settlement["properties"]["is_city"]
                 if value == "FALSE":
                     self.beginInsertRows(self.index(0).parent(), i, i)
                     self.filtered_list["features"].append(settlement)
@@ -196,42 +196,42 @@ class SettlementListModel(QAbstractListModel):
     @Slot()
     def live_filter_checkboxes(self):
         # Oba zaskrtnute
-        if self._settlement_type_city == True and self._settlement_type_village == True:
-            settlement_city = self.settlement_list["features"][13]["properties"]["is_city"]
-            settlement_village = self.settlement_list["features"][0]["properties"]["is_city"]
-            if settlement_city not in self.filtered_list or settlement_village not in self.filtered_list:
+        if self.settlement_type_city == True and self.settlement_type_village == True:
+            is_city = self.settlement_list["features"][13]["properties"]["is_city"]
+            is_village = self.settlement_list["features"][0]["properties"]["is_city"]
+            if is_city not in self.filtered_list["features"] or is_village not in self.filtered_list["features"]:
                 for entry in self.settlement_list["features"]:
                     self.filtered_list["features"].append(entry)
         
         # Zaskrtnute len mesta
-        if self._settlement_type_city == True and self._settlement_type_village == False:
-            settlement_city = self.settlement_list["features"][13]["properties"]["is_city"]
-            settlement_village = self.settlement_list["features"][0]["properties"]["is_city"]
-            if settlement_village in self.filtered_list:
+        if self.settlement_type_city == True and self.settlement_type_village == False:
+            is_city = self.settlement_list["features"][13]["properties"]["is_city"]
+            is_village = self.settlement_list["features"][0]["properties"]["is_city"]
+            if is_village in self.filtered_list["features"]:
                 for entry in self.filtered_list["features"]:
                     if entry["properties"]["is_city"] == "FALSE":
                         self.filtered_list["features"].pop(entry)
             
-            if settlement_city not in self.filtered_list:
+            if is_city not in self.filtered_list["features"]:
                 if entry["properties"]["is_city"] == "TRUE":
                     self.filtered_list["features"].append(entry)
 
         # Zaskrtnute len dediny
-        if self._settlement_type_city == False and self._settlement_type_village == True:
-            settlement_city = self.settlement_list["features"][13]["properties"]["is_city"]
-            settlement_village = self.settlement_list["features"][0]["properties"]["is_city"]
+        if self.settlement_type_city == False and self.settlement_type_village == True:
+            is_city = self.settlement_list["features"][13]["properties"]["is_city"]
+            is_village = self.settlement_list["features"][0]["properties"]["is_city"]
             
-            if settlement_city in self.filtered_list:
+            if is_city in self.filtered_list["features"]:
                 if entry["properties"]["is_city"] == "TRUE":
                     self.filtered_list["features"].pop(entry)
             
-            if settlement_village not in self.filtered_list:
+            if is_village not in self.filtered_list["features"]:
                 for entry in self.filtered_list["features"]:
                     if entry["properties"]["is_city"] == "FALSE":
                         self.filtered_list["features"].append(entry)
 
         # Nic
-        if self._settlement_type_city == False and self._settlement_type_village == False:
+        if self.settlement_type_city == False and self.settlement_type_village == False:
             self.clear_filter()
 
 # Inicializacia aplikacie
