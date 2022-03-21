@@ -12,6 +12,7 @@ RowLayout {
     
 
         Column {
+            id:main_column
             anchors.fill: parent
             Layout.minimumWidth: 210
             Rectangle{
@@ -35,30 +36,39 @@ RowLayout {
                         checked : true
                         onCheckStateChanged: settlementListModel.filter_checkbox()
                     }
-                }    
-        
-            Binding {
-                target: settlementListModel
-                property: "show_cities"
-                value: citiesChecked.checked
+                    Binding {
+                        target: settlementListModel
+                        property: "show_cities"
+                        value: citiesChecked.checked
         }
+                    Binding {
+                        target: settlementListModel
+                        property: "show_villages"
+                        value: villagesChecked.checked
+                    }       
+        }    
+        
+          
 
-            Binding {
-                target: settlementListModel
-                property: "show_villages"
-                value: villagesChecked.checked
-            }
+
 }
             Rectangle{
                 id: second_rectangle
                 anchors.top: first_rectangle.bottom
                 anchors.topMargin: 50
+                Text{
+                    id:heading_rangeslider
+                    text:"Počet obyvatel: "
+                }
                 RangeSlider {
                     id: rangeSlider
                     from: 0
                     to: 1267449
                     first.value: settlementListModel.min_slider
                     second.value: settlementListModel.max_slider
+                    Layout.alignment: Qt.AlignHCenter
+                    anchors.top: heading_rangeslider.bottom
+                    
                     Component.onCompleted: {
                             rangeSlider.setValues(0, 1267449)
                     }
@@ -73,15 +83,47 @@ RowLayout {
                         value: rangeSlider.second.value
                     }
                 }
+        RowLayout {
+            anchors.top: second_rectangle.bottom
+            anchors.topMargin: 70
+            
+            Label {
+                text: "Od: "
+            }
+            TextInput {
+                id: minPoInput
+                text: settlementListModel.min_slider
+                Binding {
+                    target: settlementListModel
+                    property: "min_slider"
+                    value: minSliderInput.text
                 }
+            }
+            
+       
+            Label {
+                text: "Do: "
+            }
+            TextInput {
+                id: maxPoInput
+                text: settlementListModel.max_slider
+                Binding {
+                    target: settlementListModel
+                    property: "max_slider"
+                    value: maxSliderInput.text
+                }
+            }    
+    
+}}
         Rectangle{
             id: third_rectangle
             anchors.top: second_rectangle.bottom
-            anchors.topMargin: 50
-             
+            anchors.topMargin: 100
+            
 
             Column{
                 spacing: 5
+                
                 Text{
                     id: combo_kraj_label
                     text: "Kraj:"
