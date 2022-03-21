@@ -169,9 +169,8 @@ class SettlementListModel(QAbstractListModel):
         self.endRemoveRows()
 
     # Handler pre checkboxy, treba vymysliet; plan je zaplnovat filtered_list tym, co tu bude zavolane
-        
     @Slot()
-    def filter_checkbox(self):
+    def filter(self):
         self.clear_filter()
         i = 0
         
@@ -179,61 +178,21 @@ class SettlementListModel(QAbstractListModel):
             if self.show_cities:
                 value = settlement["properties"]["is_city"]
                 if value == "TRUE":
-                    self.beginInsertRows(self.index(0).parent(), i, i)
-                    self.filtered_list["features"].append(settlement)
-                    self.endInsertRows()
-                    i += 1
-    
+                    if self.max_slider >= settlement["properties"]["POCET_OBYV"] >= self.min_slider:
+                        self.beginInsertRows(self.index(0).parent(), i, i)
+                        self.filtered_list["features"].append(settlement)
+                        self.endInsertRows()
+                        i += 1
     
             if self.show_villages:
                 value = settlement["properties"]["is_city"]
                 if value == "FALSE":
-                    self.beginInsertRows(self.index(0).parent(), i, i)
-                    self.filtered_list["features"].append(settlement)
-                    self.endInsertRows()
-                    i += 1
+                    if self.max_slider >= settlement["properties"]["POCET_OBYV"] >= self.min_slider:
+                        self.beginInsertRows(self.index(0).parent(), i, i)
+                        self.filtered_list["features"].append(settlement)
+                        self.endInsertRows()
+                        i += 1
     
-    @Slot()
-    def live_filter_checkboxes(self):
-        # Oba zaskrtnute
-        if self.settlement_type_city == True and self.settlement_type_village == True:
-            is_city = self.settlement_list["features"][13]["properties"]["is_city"]
-            is_village = self.settlement_list["features"][0]["properties"]["is_city"]
-            if is_city not in self.filtered_list["features"] or is_village not in self.filtered_list["features"]:
-                for entry in self.settlement_list["features"]:
-                    self.filtered_list["features"].append(entry)
-        
-        # Zaskrtnute len mesta
-        if self.settlement_type_city == True and self.settlement_type_village == False:
-            is_city = self.settlement_list["features"][13]["properties"]["is_city"]
-            is_village = self.settlement_list["features"][0]["properties"]["is_city"]
-            if is_village in self.filtered_list["features"]:
-                for entry in self.filtered_list["features"]:
-                    if entry["properties"]["is_city"] == "FALSE":
-                        self.filtered_list["features"].pop(entry)
-            
-            if is_city not in self.filtered_list["features"]:
-                if entry["properties"]["is_city"] == "TRUE":
-                    self.filtered_list["features"].append(entry)
-
-        # Zaskrtnute len dediny
-        if self.settlement_type_city == False and self.settlement_type_village == True:
-            is_city = self.settlement_list["features"][13]["properties"]["is_city"]
-            is_village = self.settlement_list["features"][0]["properties"]["is_city"]
-            
-            if is_city in self.filtered_list["features"]:
-                if entry["properties"]["is_city"] == "TRUE":
-                    self.filtered_list["features"].pop(entry)
-            
-            if is_village not in self.filtered_list["features"]:
-                for entry in self.filtered_list["features"]:
-                    if entry["properties"]["is_city"] == "FALSE":
-                        self.filtered_list["features"].append(entry)
-
-        # Nic
-        if self.settlement_type_city == False and self.settlement_type_village == False:
-            self.clear_filter()
-
 # Inicializacia aplikacie
 app = QGuiApplication(sys.argv)
 view = QQuickView()

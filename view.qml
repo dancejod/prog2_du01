@@ -116,7 +116,7 @@ RowLayout {
                 text: "Filter"
 
                 onClicked: {
-                    settlementListModel.filter_checkbox()
+                    settlementListModel.filter()
                     settlementListModel.currentIndex = -1
                     mapSettlements.fitViewportToVisibleMapItems()
 
