@@ -142,7 +142,7 @@ RowLayout {
                     model: settlementListModel.list_of_regions
                     onActivated: {
                         settlementListModel.selected_region = settlementListModel.list_of_regions[currentIndex]
-                        settlementListModel.live_filter_r_d()
+                        settlementListModel.filter()
                         }
                 }
 
@@ -156,7 +156,7 @@ RowLayout {
                     model: settlementListModel.valid_districts
                     onActivated: {
                         settlementListModel.sel_district = settlementListModel.valid_districts[currentIndex]
-                        settlementListModel.live_filter_r_d()
+                        settlementListModel.filter()
                     }
                 }
             }

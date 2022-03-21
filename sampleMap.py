@@ -28,18 +28,18 @@ class SettlementListModel(QAbstractListModel):
         QAbstractListModel.__init__(self)
         self.settlement_list = {}
         self.filtered_list = {}
+        self.district_region_dict = {}
         self.district_list = []
         self.region_list = []
-        self.current_region = "všechny"
         self.current_districts = []
-        self.current_district = ''
-        self.district_region_dict = {}
         self._min_slider = 0
         self._max_slider = 1267449
         self.settlement_type_city = True
         self.settlement_type_village = True
         self._valid_districts = "všechny"
         self._selected_region = "všechny"
+        self.current_region = "všechny"
+        self.current_district = 'všechny'
 
         if filename:
             self.load_from_json(filename)
@@ -120,7 +120,7 @@ class SettlementListModel(QAbstractListModel):
                 self.region_list.append(region_name)
 
             if region_name not in self.district_region_dict.keys():
-                self.district_region_dict[region_name] = []
+                self.district_region_dict[region_name] = ["všechny"]
             else:
                 if district_name not in self.district_region_dict[region_name]:
                     self.district_region_dict[region_name].append(district_name)
@@ -250,34 +250,7 @@ class SettlementListModel(QAbstractListModel):
                                 self.filtered_list["features"].append(settlement)
                                 self.endInsertRows()
                                 i += 1
-
-    @Slot()
-    def live_filter_r_d(self):
-        self.clear_filter()
-        i = 0
         
-        for settlement in self.settlement_list["features"]:
-            if self.selected_region == settlement["properties"]["NAZ_KRAJ"] or self.selected_region == "všechny":
-                if self.sel_district == settlement["properties"]["NAZ_OKRES"] or self.sel_district == "všechny":
-                    if self.show_cities:
-                        value = settlement["properties"]["is_city"]
-                        if value == "TRUE":
-                            if self.max_slider >= settlement["properties"]["POCET_OBYV"] >= self.min_slider:
-                                self.beginInsertRows(self.index(0).parent(), i, i)
-                                self.filtered_list["features"].append(settlement)
-                                self.endInsertRows()
-                                i += 1
-            
-                    if self.show_villages:
-                        value = settlement["properties"]["is_city"]
-                        if value == "FALSE":
-                            if self.max_slider >= settlement["properties"]["POCET_OBYV"] >= self.min_slider:
-                                self.beginInsertRows(self.index(0).parent(), i, i)
-                                self.filtered_list["features"].append(settlement)
-                                self.endInsertRows()
-                                i += 1
-        
-    
 # Inicializacia aplikacie
 app = QGuiApplication(sys.argv)
 view = QQuickView()
