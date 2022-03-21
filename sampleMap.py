@@ -1,4 +1,4 @@
-from PySide2.QtCore import QObject, Signal, Slot, Property, QUrl, QAbstractListModel, QByteArray
+from PySide2.QtCore import Signal, Slot, Property, QUrl, QAbstractListModel, QByteArray
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtQuick import QQuickView
 from PySide2.QtPositioning import QGeoCoordinate
@@ -58,6 +58,7 @@ class SettlementListModel(QAbstractListModel):
                 self.filtered_list["features"].append(entry)
                 self.endInsertRows()
                 i = +1
+
     # Metoda na manipulaciu s riadkami
     def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
         return len(self.filtered_list["features"])
@@ -71,7 +72,7 @@ class SettlementListModel(QAbstractListModel):
         elif role == self.Roles.POP.value:
             return self.filtered_list["features"][index.row()]["properties"]["POCET_OBYV"]
         elif role == self.Roles.AREA.value:
-            return round(self.filtered_list["features"][index.row()]["properties"]["area"],2)
+            return round(self.filtered_list["features"][index.row()]["properties"]["area"], 2)
         elif role == self.Roles.DISTRICT.value:
             return self.filtered_list["features"][index.row()]["properties"]["NAZ_OKRES"]
         elif role == self.Roles.REGION.value:
@@ -191,7 +192,47 @@ class SettlementListModel(QAbstractListModel):
                     self.filtered_list["features"].append(settlement)
                     self.endInsertRows()
                     i += 1
+    
+    @Slot()
+    def live_filter_checkboxes(self):
+        # Oba zaskrtnute
+        if self._settlement_type_city == True and self._settlement_type_village == True:
+            settlement_city = self.settlement_list["features"][13]["properties"]["is_city"]
+            settlement_village = self.settlement_list["features"][0]["properties"]["is_city"]
+            if settlement_city not in self.filtered_list or settlement_village not in self.filtered_list:
+                for entry in self.settlement_list["features"]:
+                    self.filtered_list["features"].append(entry)
         
+        # Zaskrtnute len mesta
+        if self._settlement_type_city == True and self._settlement_type_village == False:
+            settlement_city = self.settlement_list["features"][13]["properties"]["is_city"]
+            settlement_village = self.settlement_list["features"][0]["properties"]["is_city"]
+            if settlement_village in self.filtered_list:
+                for entry in self.filtered_list["features"]:
+                    if entry["properties"]["is_city"] == "FALSE":
+                        self.filtered_list["features"].pop(entry)
+            
+            if settlement_city not in self.filtered_list:
+                if entry["properties"]["is_city"] == "TRUE":
+                    self.filtered_list["features"].append(entry)
+
+        # Zaskrtnute len dediny
+        if self._settlement_type_city == False and self._settlement_type_village == True:
+            settlement_city = self.settlement_list["features"][13]["properties"]["is_city"]
+            settlement_village = self.settlement_list["features"][0]["properties"]["is_city"]
+            
+            if settlement_city in self.filtered_list:
+                if entry["properties"]["is_city"] == "TRUE":
+                    self.filtered_list["features"].pop(entry)
+            
+            if settlement_village not in self.filtered_list:
+                for entry in self.filtered_list["features"]:
+                    if entry["properties"]["is_city"] == "FALSE":
+                        self.filtered_list["features"].append(entry)
+
+        # Nic
+        if self._settlement_type_city == False and self._settlement_type_village == False:
+            self.clear_filter()
 
 # Inicializacia aplikacie
 app = QGuiApplication(sys.argv)

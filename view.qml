@@ -26,7 +26,8 @@ RowLayout {
                         text: qsTr("Města")	// only `display` clashes with CheckBox property
                         checkable: true		// users can check
                         checked : true
-                        onCheckStateChanged: settlementListModel.filter_checkbox()
+                        onCheckStateChanged: {
+                            if settlementListModel.live_filter_checkboxes()
                     }
                 
                     CheckBox {
@@ -34,7 +35,7 @@ RowLayout {
                         text: qsTr("Vesnice")	// only `display` clashes with CheckBox property
                         checkable: true		// users can check
                         checked : true
-                        onCheckStateChanged: settlementListModel.filter_checkbox()
+                        onCheckStateChanged: settlementListModel.live_filter_checkboxes()
                     }
                     Binding {
                         target: settlementListModel
@@ -47,9 +48,6 @@ RowLayout {
                         value: villagesChecked.checked
                     }       
         }    
-        
-          
-
 
 }
             Rectangle{
@@ -132,7 +130,7 @@ RowLayout {
                 ComboBox {
                     id: combo_kraj
                     currentIndex: -1
-                    model: ["First", "Second", "Third"]
+                    model: settlementListModel.region_list
                 }
 
                 Text{
@@ -143,7 +141,7 @@ RowLayout {
                 ComboBox {
                     currentIndex: -1
                     id: combo_okres
-                    model: ["First", "Second", "Third"]
+                    model: settlementListModel.district_list
                 }
             }
         }
