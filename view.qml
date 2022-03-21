@@ -23,16 +23,16 @@ RowLayout {
                     
                     CheckBox {
                         id: citiesChecked
-                        text: qsTr("Města")	// only `display` clashes with CheckBox property
-                        checkable: true		// users can check
+                        text: qsTr("Města")
+                        checkable: true
                         checked : true
                         onCheckStateChanged: settlementListModel.show_cities = citiesChecked.checked
                     }
                 
                     CheckBox {
                         id: villagesChecked
-                        text: qsTr("Vesnice")	// only `display` clashes with CheckBox property
-                        checkable: true		// users can check
+                        text: qsTr("Vesnice")
+                        checkable: true	
                         checked : true
                         onCheckStateChanged: settlementListModel.show_villages = villagesChecked.checked
                     }
@@ -127,8 +127,7 @@ RowLayout {
         Rectangle{
             id: fourth_rectangle
             anchors.top: third_rectangle.bottom
-            anchors.topMargin: 100
-            
+            anchors.topMargin: 80
 
             Column{
                 spacing: 5
@@ -159,14 +158,14 @@ RowLayout {
         Rectangle {
             id: fifth_rectangle
             anchors.top: fourth_rectangle.bottom
-            anchors.topMargin: 170
+            anchors.topMargin: 150
             width: 250
-            height: 500
+            height: 400
             
             ListView {
                 id: settlementList
-                width: 250
-                height: 500
+                width: parent.width
+                height: parent.height
                 focus: true
 
                 Component {
@@ -179,7 +178,7 @@ RowLayout {
                         }
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: settlementList.currentIndex = index-500+parent.height
+                            onClicked: settlementList.currentIndex = index
                         }
                     }
                 }
