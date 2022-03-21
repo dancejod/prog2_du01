@@ -124,34 +124,40 @@ RowLayout {
             }
 
         }
-        Rectangle{
+        Rectangle {
             id: fourth_rectangle
             anchors.top: third_rectangle.bottom
             anchors.topMargin: 80
 
-            Column{
+            Column {
                 spacing: 5
                 
-                Text{
-                    id: combo_kraj_label
+                Text {
+                    id: combo_region_label
                     text: "Kraj:"
                 }
 
                 ComboBox {
-                    id: combo_kraj
-                    currentIndex: -1
-                    model: settlementListModel.region_list
+                    id: combo_region
+                    model: settlementListModel.list_of_regions
+                    onActivated: {
+                        settlementListModel.selected_region = settlementListModel.list_of_regions[currentIndex]
+                        settlementListModel.valid_districts = settlementListModel.district_region_dict[settlementListModel.list_of_regions[currentIndex]]
+                        combo_district.model = settlementListModel.valid_districts
+                    }
                 }
 
-                Text{
-                    id: combo_okres_label
+                Text {
+                    id: combo_district_label
                     text: "Okres:"
                 }
 
                 ComboBox {
-                    currentIndex: -1
-                    id: combo_okres
-                    model: settlementListModel.district_list
+                    id: combo_district
+                    model: settlementListModel.valid_districts
+                    onActivated: {
+                        settlementListModel.sel_district = settlementListModel.valid_districts[currentIndex]
+                    }
                 }
             }
         }
@@ -231,8 +237,6 @@ RowLayout {
         
     }
        
-    
-
     RowLayout {
         Layout.fillWidth: true
 

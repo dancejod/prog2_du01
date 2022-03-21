@@ -26,20 +26,24 @@ class SettlementListModel(QAbstractListModel):
     # Plan je do filtered_list prihadzovat a odoberat veci, ktore splnaju nase poziadavky, ten potom bude zodpovedny za display    
     def __init__(self, filename=None):
         QAbstractListModel.__init__(self)
-        self.settlement_list = []
+        self.settlement_list = {}
         self.filtered_list = {}
         self.district_list = []
         self.region_list = []
+        self.current_region = "všechny"
+        self.current_districts = []
+        self.current_district = ''
         self.district_region_dict = {}
         self._min_slider = 0
         self._max_slider = 1267449
         self.settlement_type_city = True
         self.settlement_type_village = True
-        self._show_district = "all"
-        self._show_region = "all"
+        self._valid_districts = "všechny"
+        self._selected_region = "všechny"
 
         if filename:
             self.load_from_json(filename)
+            self.get_district_region_lists()
     
     # Nacitanie dat a korekcia geometrie
     def load_from_json(self, filename):
@@ -58,6 +62,9 @@ class SettlementListModel(QAbstractListModel):
                 self.filtered_list["features"].append(entry)
                 self.endInsertRows()
                 i = +1
+
+            self.settlement_list["features"] = sorted(self.settlement_list["features"], key=lambda d: d["properties"]["NAZ_OBEC"])
+            self.filtered_list["features"] = sorted(self.filtered_list["features"], key=lambda d: d["properties"]["NAZ_OBEC"])
 
     # Metoda na manipulaciu s riadkami
     def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
@@ -86,18 +93,21 @@ class SettlementListModel(QAbstractListModel):
     # Pomenovanie roli tak, ako budu zobrazovane v qml
     def roleNames(self) -> typing.Dict[int, QByteArray]:
         roles = super().roleNames()
-        roles[self.Roles.LOC.value] = QByteArray(b'location')
-        roles[self.Roles.POP.value] = QByteArray(b'population')
-        roles[self.Roles.AREA.value] = QByteArray(b'area')
-        roles[self.Roles.DISTRICT.value] = QByteArray(b'district')
-        roles[self.Roles.REGION.value] = QByteArray(b'region')
-        roles[self.Roles.IS_CITY.value] = QByteArray(b'township')
+        roles[self.Roles.LOC.value] = QByteArray(b"location")
+        roles[self.Roles.POP.value] = QByteArray(b"population")
+        roles[self.Roles.AREA.value] = QByteArray(b"area")
+        roles[self.Roles.DISTRICT.value] = QByteArray(b"district")
+        roles[self.Roles.REGION.value] = QByteArray(b"region")
+        roles[self.Roles.IS_CITY.value] = QByteArray(b"township")
         print(roles)
         return roles
 
     # Ziskanie zoznamov krajov a okresov, naplnenie slovnika: klucom su kraje, hodnotami su zoznamy okresov, ktore ku krajom patria
-    # Na konci metody mimo cyklu pridany atribut "all" pre zobrazenie vsetkeho
+    # Na konci metody mimo cyklu pridany atribut "všechny" pre zobrazenie vsetkeho
     def get_district_region_lists(self):
+        
+        self.region_list.append("všechny")
+
         for record in range(len(self.settlement_list["features"])):
 
             district_name = self.settlement_list["features"][record]["properties"]["NAZ_OKRES"]
@@ -113,9 +123,9 @@ class SettlementListModel(QAbstractListModel):
             else:
                 if district_name not in self.district_region_dict[region_name]:
                     self.district_region_dict[region_name].append(district_name)
-
-        self.region_list.append("all")
-        self.district_region_dict["all"] = self.district_list
+        
+        self.district_region_dict["všechny"] = self.district_list
+        self.current_districts = self.district_list
 
     # Gettery, settery a properties pre slidere, mesta, obce
     # Mesta a obce pracuju s valeanom, pretoze mame len T/F
@@ -163,6 +173,63 @@ class SettlementListModel(QAbstractListModel):
     show_villages_changed = Signal()
     show_villages = Property(bool, get_villages, set_villages, notify=show_villages_changed)
 
+    def get_districts(self):
+        return self.current_districts
+
+    def set_districts(self, val):
+        if val != self.valid_districts:
+            self.current_districts = val
+        self.current_districts_changed.emit()
+    
+    current_districts_changed = Signal()
+    valid_districts = Property(list, get_districts, set_districts, notify=current_districts_changed)
+
+    def get_region(self):
+        return self.current_region
+
+    def set_region(self, val):
+        if val != self.selected_region:
+            self.current_region = val
+        self.current_region_changed.emit()
+    
+    current_region_changed = Signal()
+    selected_region = Property(str, get_region, set_region, notify=current_region_changed)
+
+    def get_list_of_regions(self):
+        return self.region_list
+
+    def set_list_of_regions(self, val):
+        if val != self.list_of_regions:
+            self.region_list = val
+        self.list_of_regions_changed.emit()
+
+    list_of_regions_changed = Signal()
+    list_of_regions = Property(list, get_list_of_regions, set_list_of_regions, notify=list_of_regions_changed)
+
+    def get_selected_district(self):
+        return self.current_district
+
+    def set_selected_district(self, val):
+        if val != self.sel_district:
+            self.current_district = val
+        self.selected_district_changed.emit()
+
+    selected_district_changed = Signal()
+    sel_district = Property(str, get_selected_district, set_selected_district, notify=selected_district_changed)
+
+    @Slot(str)
+    def set_regionslot(self, val: str):
+        self.kraj_filtr = []
+        self.kraj_filtr.append(val)
+        print(self.kraj_filtr)
+
+    #Sets the value of property okres_filtr
+    @Slot(str)
+    def set_districtslot(self, val: str):
+        self.okres_filtr = []
+        self.okres_filtr.append(val)
+        print(self.okres_filtr)
+
     def clear_filter(self) -> None:
         self.beginRemoveRows(self.index(0).parent(), 0, self.rowCount()-1)
         self.filtered_list["features"] = []
@@ -199,7 +266,7 @@ view = QQuickView()
 url = QUrl(VIEW_URL)
 settlementlist_model = SettlementListModel(SETTLEMENT_LIST)
 ctxt = view.rootContext()
-ctxt.setContextProperty('settlementListModel', settlementlist_model)
+ctxt.setContextProperty("settlementListModel", settlementlist_model)
 view.setSource(url)
 view.show()
 app.exec_()
