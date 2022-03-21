@@ -91,7 +91,7 @@ RowLayout {
                 text: "Od: "
             }
             TextInput {
-                id: minPoInput
+                id: minSliderInput
                 text: settlementListModel.min_slider
                 Binding {
                     target: settlementListModel
@@ -105,7 +105,7 @@ RowLayout {
                 text: "Do: "
             }
             TextInput {
-                id: maxPoInput
+                id: maxSliderInput
                 text: settlementListModel.max_slider
                 Binding {
                     target: settlementListModel
